@@ -1,0 +1,17 @@
+.frame-elemento {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.icona {
+    background-color: whitesmoke;
+    border-radius: 50px;
+    width: 6rem;
+    height: 6rem;
+    font-size: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

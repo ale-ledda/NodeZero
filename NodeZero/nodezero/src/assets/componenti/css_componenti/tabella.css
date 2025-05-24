@@ -1,0 +1,8 @@
+.layoutTabella {
+    height: 30rem;
+    width: 80vw; /* 80% della larghezza della viewport */
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    left: 20%;
+}

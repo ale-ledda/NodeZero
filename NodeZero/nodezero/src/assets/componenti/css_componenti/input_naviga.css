@@ -1,0 +1,27 @@
+.lista-suggerimenti {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 80vw;
+    border: 1px solid #ccc;
+    background-color: white;
+    z-index: 1;
+    max-Height: 150px;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.campo-selezione, .campo-selezione:focus {
+    width: 80vw;
+    padding: 8px;
+    text-align: center;
+    border: none;
+    outline: none;
+}
+
+.suggerimento {
+    padding: 8px;
+    cursor: pointer;
+}

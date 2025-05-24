@@ -1,0 +1,27 @@
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3.5rem;
+    box-shadow: 0 0 0.1rem grey;
+    display: flex;
+    align-content: center;
+}
+
+.navbar-brand{
+    padding-left: 1rem;
+    
+}
+
+.icon-logo-node-zero {
+    font-size: 4rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    color: black;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
