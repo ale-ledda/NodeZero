@@ -9,12 +9,14 @@ try {
     // API
     const serviziRoutes = require('./API/servizi');
     const clientsRoutes = require('./API/clients');
+    const agendeRoutes = require('./API/agende');
 
     app.use(cors());
     app.use(bodyParser.json());
 
     app.use('/API', serviziRoutes); //API - Gestione dei servizi
     app.use('/API', clientsRoutes); //API - Gestione dei clients
+    app.use('/API', agendeRoutes); //API - Gestione delle agende
 }
 catch (error) {
     console.log("Errore durante il routing delle API, eccezione: " + error);

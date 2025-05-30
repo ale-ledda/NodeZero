@@ -12,7 +12,7 @@ function App() {
 
     // Recupero la lista di client dal db
     useEffect(() => {
-        fetch(env.DOMINIO + "/API/getClients")
+        fetch(env.URL_SERVER + "/API/get-clients")
             .then(response => {
                 if (!response.ok) {
                     console.log(`Errore HTTP: ${response.status}`);

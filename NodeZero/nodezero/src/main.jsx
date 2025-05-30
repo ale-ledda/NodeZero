@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import Home from './assets/pagine/Home.jsx'
 import Servizi from './assets/pagine/Servizi.jsx'
+import Agende from './assets/pagine/Agende.jsx'
 import Navbar_superiore from './assets/componenti/navbar_superiore.jsx'
 import './index.css'
 
@@ -29,6 +30,14 @@ const router = createBrowserRouter([
                 <Servizi />
             </Navbar_superiore>
     },
+    {
+        path: "/:aziendaID/gestisci-agende",
+        element:
+            <Navbar_superiore>
+                <Agende />
+            </Navbar_superiore>
+    },
+    
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(

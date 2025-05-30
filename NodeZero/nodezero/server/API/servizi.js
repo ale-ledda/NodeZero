@@ -18,7 +18,7 @@ router.get('/get-servizi', (req, res) => {
             const request = pool.request();
             const id_client = req.headers.id_client;
 
-            const query = 'SELECT servizio, durata, prezzo FROM Servizi WHERE id_client=@id_client';
+            const query = 'SELECT id_servizio, servizio, durata, prezzo FROM Servizi WHERE id_client=@id_client';
             request.input('id_client', sql.Int, id_client);
 
             let result = await request.query(query);

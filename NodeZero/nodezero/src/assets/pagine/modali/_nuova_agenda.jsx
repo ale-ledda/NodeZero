@@ -8,41 +8,32 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 //componenti
 import Modale from '../../componenti/modale';
 import Button from 'react-bootstrap/Button';
+// hooks
+import useAddAgenda from '../../hooks/fetch/useAddAgenda.jsx';
 
 
 // variabili
-let servizio = {
+let agenda = {
     id_client: 102, // FIXME: recupera dal session token
-    servizio: null,
-    durata: null,
-    prezzo: null
+    nome_agenda: null,
+    descrizione: null,
+    foto: null
 };
-function _nuovo_servizio({ updated, show}) {
+function _nuova_agenda({ updated, show }) {
 
     const handleHide = () => {
         updated(false);
     };
 
-
     const handleAggServizio = async () => {
         // ottengo i valori dall'input
-        servizio.servizio = document.getElementById('servizio-input').value;
-        servizio.durata = document.getElementById('durata-input').value;
-        servizio.prezzo = document.getElementById('prezzo-input').value;
+        agenda.nome_agenda = document.getElementById('titolo-input').value;
+        agenda.descrizione = document.getElementById('descrizione-input').value;
 
-        const response = await fetch(env.URL_SERVER + "/API/nuovo-servizio",
-            {
-                method: 'POST',
-                headers:
-                {
-                    // 'Authorization': `Bearer ${mioToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(servizio),
-            });
+        const response  = useAddAgenda(agenda);
 
         // creo le due variabili che mi aiutano a gestire il caricamento
-        const [id_, toast_, impostazioni_] = f.toastCaricamento("Inserimento del servizio in corso...");
+        const [id_, toast_, impostazioni_] = f.toastCaricamento("Inserimento della nuova agenda in corso...");
 
         if (response.ok) {
             // successo
@@ -55,8 +46,8 @@ function _nuovo_servizio({ updated, show}) {
             setTimeout(() => {
                 handleHide();
                 toast_.dismiss(id_);
-            }, 2000); 
-            
+            }, 2000);
+
         } else {
             // alert di errore
             const errorData = await response.json();
@@ -64,7 +55,7 @@ function _nuovo_servizio({ updated, show}) {
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliErrore_ });
             setTimeout(() => {
                 toast_.dismiss(id_);
-            }, 5000); 
+            }, 5000);
         }
     };
 
@@ -73,21 +64,17 @@ function _nuovo_servizio({ updated, show}) {
      * Modale nuovo servizio
      */
     const nuovo_servizio = {
-        key: "modale-nuovo-servizio",
-        titolo: "Nuovo servizio",
+        key: "modale-nuova-agenda",
+        titolo: "Nuova agenda",
         corpo: (
             <div>
                 <div className="form-floating mb-3">
-                    <input type="text" id="servizio-input" className="form-control" placeholder="-" />
-                    <label htmlFor="servizio-input">Nome del servizio</label>
+                    <input type="text" id="titolo-input" className="form-control" placeholder="-" />
+                    <label htmlFor="titolo-input">Titolo</label>
                 </div>
                 <div className="form-floating mb-3">
-                    <input type="number" id="durata-input" className="form-control" placeholder="-" />
-                    <label htmlFor="durata-input">Durata del servizio (minuti)</label>
-                </div>
-                <div className="form-floating mb-3">
-                    <input type="number" id="prezzo-input" className="form-control" placeholder="-" />
-                    <label htmlFor="prezzo-input">Prezzo del servizio</label>
+                    <input type="text" id="descrizione-input" className="form-control" placeholder="-" />
+                    <label htmlFor="descrizione-input">Descrizione</label>
                 </div>
             </div>
         ),
@@ -103,4 +90,4 @@ function _nuovo_servizio({ updated, show}) {
         </>
     );
 }
-export default _nuovo_servizio;
+export default _nuova_agenda;

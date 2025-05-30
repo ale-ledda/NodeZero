@@ -7,10 +7,10 @@ const f = require('../functions');
 
 
 /**
- * [getClients - API GET]
+ * [get-clients - API GET]
  * Restituisce una lista di Account attivi presi dalla tabella Clients
  */
-router.get("/getClients", async (req, res) => {
+router.get("/get-clients", async (req, res) => {
     (async () => {
         try {
             await sql.connect(f.getFileVariabiliJSON().CONNECTION_STRING);
@@ -32,10 +32,10 @@ router.get("/getClients", async (req, res) => {
 });
 
 /**
- * [getClient - API GET]
+ * [get-client - API GET]
  * Restituisce i dati di uno specifico client passato come parametro
  */
-router.get("/getClient", async (req, res) => {
+router.get("/get-client", async (req, res) => {
     (async () => {
         try {
             await sql.connect(f.getFileVariabiliJSON().CONNECTION_STRING);

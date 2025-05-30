@@ -1,4 +1,6 @@
 import React from 'react';
+// librerie
+import env from "../../../variabili.json";
 // stili
 import './css_componenti/navbar_inferiore.css';
 import { ThreeDots, Gear, JournalBookmark, Boxes, Bank, Box2, ListStars} from 'react-bootstrap-icons';
@@ -7,9 +9,13 @@ import Elemento from './elemento';
 import Modale from './modale';
 import { Link } from 'react-router-dom';
 
+
 function Navbar_inferiore() {
     const [modalShow, setModalShow] = React.useState(false);
-    const path_servizi = window.location.pathname.includes('/servizi') ? window.location.pathname : window.location.pathname + '/servizi';
+    // recupero il path del client per costruire i link correttamente
+    const app = window.location.pathname.split("/")[1]
+    console.log("test: " + app);
+
 
     /**
      * Modale del menu
@@ -27,13 +33,14 @@ function Navbar_inferiore() {
         ),
         corpo: (
             <div className="d-flex justify-content-center flex-column mt-2">
-
                 <div className="row">
                     <div className='col-6 col-xl-4 col-lg-4 col-md-4'>
-                        <Elemento titolo='Prenotazioni' icona={<JournalBookmark />} />
+                        <Link to={`${env.URL}/${app}/gestisci-agende`} >
+                            <Elemento titolo='Gestisci agende' icona={<JournalBookmark />} />
+                        </Link>
                     </div>
                     <div className='col-6 col-xl-4 col-lg-4 col-md-4'>
-                        <Link to={ path_servizi } >
+                        <Link to={`${env.URL}/${app}/servizi`} >
                             <Elemento titolo='Gestione servizi' icona={<Boxes />} />
                         </Link>
                     </div>
@@ -49,7 +56,7 @@ function Navbar_inferiore() {
                     <div className='col-6 col-xl-4 col-lg-4 col-md-4'>
                         <Elemento titolo='Impostazioni' icona={<Gear />} />
                     </div>
-                    </div>
+                </div>
             </div>
         ),
         azioni: [ ],
@@ -62,7 +69,7 @@ function Navbar_inferiore() {
                     <ThreeDots className="icona-menu" />
                 </div>
             </div>
-            <Modale show={modalShow} onHide={() => setModalShow(false)} modale={menu} onlyBody={true} />
+            <Modale show={modalShow} onHide={() => setModalShow(false)} modale={menu} solo_corpo='false' />
         </>
     );
 }

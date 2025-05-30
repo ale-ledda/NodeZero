@@ -14,7 +14,7 @@ function Home() {
 
     // Recupero il client selezionato
     useEffect(() => {
-        fetch(env.DOMINIO + "/API/getClient",
+        fetch(env.URL_SERVER + "/API/get-client",
             {
                 method: 'GET',
                 headers:

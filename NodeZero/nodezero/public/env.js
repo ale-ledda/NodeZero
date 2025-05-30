@@ -1,1 +1,1 @@
-window.env = {DOMINIO='AAA'};
+window.env = {URL_SERVER='AAA'};
