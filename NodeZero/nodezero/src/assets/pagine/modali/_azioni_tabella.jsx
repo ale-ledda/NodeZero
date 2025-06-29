@@ -17,7 +17,7 @@ let servizio = {
     durata: null,
     prezzo: null
 };
-function _azioni_servizio({ updated, show }) {
+function _azioni_tabella({ updated, show }) {
 
     const handleHide = () => {
         updated(false);
@@ -59,4 +59,4 @@ function _azioni_servizio({ updated, show }) {
         </>
     );
 }
-export default _azioni_servizio;
+export default _azioni_tabella;

@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import env from '/variabili.json';
 
 function useGetServizi() {
-    const [record, setRecord] = React.useState([]);
+    const [recordServizi, setrRecordServizi] = React.useState([]);
 
     const fetchServizi = useCallback(async () => {
         try {
@@ -23,8 +23,8 @@ function useGetServizi() {
             }
 
             const data = await response.json();
-            setRecord(data.dati.recordset); // Aggiorna lo stato dei prodotti
-        } catch (err) {
+            setrRecordServizi(data.dati.recordset); // Aggiorna lo stato dei prodotti
+        } catch (error) {
             console.error("Errore durante la chiamata API:", error);
         }
     }, []);
@@ -33,7 +33,7 @@ function useGetServizi() {
         fetchServizi();
     }, [fetchServizi]);
 
-    return { record, ricaricaServizi: fetchServizi }
+    return { recordServizi, ricaricaServizi: fetchServizi }
     
 }
 

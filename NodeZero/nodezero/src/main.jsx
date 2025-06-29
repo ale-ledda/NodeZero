@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from './App'
 import Home from './assets/pagine/Home.jsx'
 import Servizi from './assets/pagine/Servizi.jsx'
@@ -40,8 +40,32 @@ const router = createBrowserRouter([
     
 ]);
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+function Main() {
+    /**
+     * Componente principale che gestisce le azioni comuni a tutte le pagine
+     * necessita di un useeffect in quanto serve per eseguire il codice al caricamento della pagina
+     */
+    useEffect(() => {
+        // Imposta il titolo della pagina
+        document.title = `NodeZero Alpha`;
+
+        // La pagina non deve permettere lo zoom con il doppio click tanto meno la selezione 
+        const preventDefaultOnDblclick = (e) => {
+            e.preventDefault();
+        };
+
+        document.addEventListener('dblclick', preventDefaultOnDblclick, { passive: false });
+        return () => {
+            document.removeEventListener('dblclick', preventDefaultOnDblclick);
+        };
+
+    }, []);
+}
+
+
+createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <RouterProvider router={router}></RouterProvider>
+        <Main />
     </React.StrictMode>
 )

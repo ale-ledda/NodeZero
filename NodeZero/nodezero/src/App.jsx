@@ -12,6 +12,7 @@ function App() {
 
     // Recupero la lista di client dal db
     useEffect(() => {
+        
         fetch(env.URL_SERVER + "/API/get-clients")
             .then(response => {
                 if (!response.ok) {
@@ -32,8 +33,11 @@ function App() {
 
     return (
         <>
-            <h1>Node Zero</h1>
-            <Input_naviga items={dataAPI} />
+            <div className="contenitorePrincipale">
+                <h1>Node Zero</h1>
+                <Input_naviga items={dataAPI} />
+            </div>
+            
         </>
     );
 }

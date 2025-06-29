@@ -21,6 +21,7 @@ function Agende() {
 
     const updateParentState = (newValue) => {
         setModalShow(newValue);
+        ricaricaAgende();
     };
 
     const [colonne, setColonne] = React.useState([
@@ -29,7 +30,7 @@ function Agende() {
         { field: "descrizione", flex: 1, resizable: false, draggable: false },
     ]);
 
-    const { record, ricaricaRecord } = useGetAgende();
+    const { recordAgende, ricaricaAgende } = useGetAgende();
 
     return (
         <>
@@ -40,7 +41,7 @@ function Agende() {
             </div>
             <_nuova_agenda updated={updateParentState} show={modalShow} />
 
-            <Tabella dati={record} intestazione={colonne} contesto="azioniAgenda" />
+            <Tabella dati={recordAgende} intestazione={colonne} contesto="azioniAgenda" />
 
             <Navbar_inferiore />
             <ToastContainer />

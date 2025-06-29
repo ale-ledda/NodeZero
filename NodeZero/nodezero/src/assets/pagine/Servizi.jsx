@@ -16,7 +16,6 @@ import useGetServizi from '../hooks/fetch/useGetServizi.jsx';
 function Servizi() {
     // Register all Community features
     ModuleRegistry.registerModules([AllCommunityModule]);
-
     const [modalShow, setModalShow] = React.useState(false);
 
     // Colonne della tabella Servizi - non ridemensionabili, non spostabili e che occupano tutta la tabella
@@ -27,14 +26,12 @@ function Servizi() {
         { field: "prezzo", flex: 1, resizable: false, draggable: false },
     ]);
 
-    const { record, ricaricaServizi } = useGetServizi();
-
+    const { recordServizi, ricaricaServizi } = useGetServizi();
 
     const updateParentState = (newValue) => {
         setModalShow(newValue);
         ricaricaServizi();
     };
-
 
     return (
         <>
@@ -45,7 +42,7 @@ function Servizi() {
             </div>
             <_nuovo_servizio updated={updateParentState} show={modalShow} />
 
-            <Tabella dati={record} intestazione={colonne} contesto="azioniServizio"/>
+            <Tabella dati={recordServizi} intestazione={colonne} contesto="azioniServizio"/>
 
             <Navbar_inferiore />
             <ToastContainer/>

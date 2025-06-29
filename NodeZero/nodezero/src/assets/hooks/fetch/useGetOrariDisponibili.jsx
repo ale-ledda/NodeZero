@@ -1,17 +1,19 @@
 import React, { useEffect, useCallback } from 'react';
 import env from '/variabili.json';
 
-function useGetAgende() {
-    const [recordAgende, setRecordAgende] = React.useState([]);
+function useGetOrariDisponibili(prenotazione) {
+    const [recordOrariDisponibili, setRecordOrariDisponibili] = React.useState([]);
 
-    const fetchAgende = useCallback(async () => {
+    const fetchOrari = useCallback(async () => {
         try {
-            const response = await fetch(env.URL_SERVER + "/API/get-agende",
+            const response = await fetch(env.URL_SERVER + "/API/get-orari-disponibili",
                 {
                     method: 'GET',
                     headers:
                     {
-                        'id_client': '102', //FIXME: Prendi dal token sessione
+                        'id_client': "102",
+                        'id_agenda': prenotazione.id_agenda,
+                        'id_servizio': prenotazione.id_servizio,
                         // 'Authorization': `Bearer ${mioToken}`,
                         'Content-Type': 'application/json'
                     }
@@ -23,18 +25,18 @@ function useGetAgende() {
             }
 
             const data = await response.json();
-            setRecordAgende(data.dati.recordset); // Aggiorna lo stato dei prodotti
+            setRecordOrariDisponibili(data.recordset[0]); // Aggiorna lo stato dei prodotti
         } catch (error) {
             console.error("Errore durante la chiamata API:", error);
         }
     }, []);
 
     useEffect(() => {
-        fetchAgende();
-    }, [fetchAgende]);
+        fetchOrari();
+    }, [fetchOrari]);
 
-    return { recordAgende, ricaricaAgende: fetchAgende }
+    return { recordOrariDisponibili}
 
 }
 
-export default useGetAgende;
+export default useGetOrariDisponibili;

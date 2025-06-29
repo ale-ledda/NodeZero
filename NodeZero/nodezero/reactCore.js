@@ -69,6 +69,14 @@ function toastCaricamento(msg_caricamento) {
     return [id, toast, impostazioniToastCaricamento];
 };
 
+function ottieniDataOdierna() {
+    /**
+     * Funzione per ottenere la data odierna in formato YYYY-MM-DD
+     */
+    const today = new Date();
+    return today.toISOString().slice(0, 10);
+}
+
 const functions = {
     toastSuccesso: toastSuccesso,
     toastInformativo: toastInformativo,
@@ -76,6 +84,7 @@ const functions = {
     toastErrore: toastErrore,
     toastSuccesso1: toastSuccesso1,
     toastCaricamento: toastCaricamento,
+    ottieniDataOdierna: ottieniDataOdierna,
 };
 
 export default functions;

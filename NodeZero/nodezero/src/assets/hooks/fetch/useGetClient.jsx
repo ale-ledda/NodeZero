@@ -1,17 +1,17 @@
 import React, { useEffect, useCallback } from 'react';
 import env from '/variabili.json';
 
-function useGetAgende() {
-    const [recordAgende, setRecordAgende] = React.useState([]);
+function useGetClient() {
+    const [record, setRecord] = React.useState([]);
 
-    const fetchAgende = useCallback(async () => {
+    const fetchClient = useCallback(async () => {
         try {
-            const response = await fetch(env.URL_SERVER + "/API/get-agende",
+            const response = await fetch(env.URL_SERVER + "/API/get-client",
                 {
                     method: 'GET',
                     headers:
                     {
-                        'id_client': '102', //FIXME: Prendi dal token sessione
+                        'path': window.location.pathname.replace('/', ''),
                         // 'Authorization': `Bearer ${mioToken}`,
                         'Content-Type': 'application/json'
                     }
@@ -23,18 +23,18 @@ function useGetAgende() {
             }
 
             const data = await response.json();
-            setRecordAgende(data.dati.recordset); // Aggiorna lo stato dei prodotti
+            setRecord(data.recordset[0]); // Aggiorna lo stato dei prodotti
         } catch (error) {
             console.error("Errore durante la chiamata API:", error);
         }
     }, []);
 
     useEffect(() => {
-        fetchAgende();
-    }, [fetchAgende]);
+        fetchClient();
+    }, [fetchClient]);
 
-    return { recordAgende, ricaricaAgende: fetchAgende }
+    return { record }
 
 }
 
-export default useGetAgende;
+export default useGetClient;

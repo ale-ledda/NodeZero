@@ -47,7 +47,6 @@ function _nuovo_servizio({ updated, show}) {
         if (response.ok) {
             // successo
             const data = await response.json();
-            console.log("data:" + data.messaggio);
             const impostazioniLocaliOK_ = { render: data.messaggio, type: "success", isLoading: false };
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliOK_ });
 

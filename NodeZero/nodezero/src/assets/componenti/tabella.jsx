@@ -6,7 +6,7 @@ import { AgGridReact } from 'ag-grid-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css_componenti/tabella.css';
 // componenti
-import _azioni_servizio from '../pagine/modali/_azioni_servizio';
+import _azioni_tabella from '../pagine/modali/_azioni_tabella';
 
 /** Crea una tabella con i dati passati, standardizzata per il software.
  * dipendenza -> ag-grid-react
@@ -19,11 +19,15 @@ import _azioni_servizio from '../pagine/modali/_azioni_servizio';
 function Tabella({ dati, intestazione, contesto }) {
     const gridRef = useRef();
     const [modalShowAzioniServizio, setModalShowAzioniServizio] = React.useState(false);
+    const [modalShowAzioniAgenda, setModalShowAzioniAgenda] = React.useState(false);
 
     const onRowClicked = useCallback((event) => {
         switch (contesto){
             case "azioniServizio": {
                 setModalShowAzioniServizio(true); // TODO: Gestire le operazioni e API attraverso l'id_servizio univoco -> event.data.id_servizio
+            }
+            case "azioniAgenda": {
+                setModalShowAzioniAgenda(true);
             }
         }
     }, []);
@@ -32,6 +36,9 @@ function Tabella({ dati, intestazione, contesto }) {
         switch (contesto) {
             case "azioniServizio": {
                 setModalShowAzioniServizio(newValue);
+            }
+            case "azioniAgenda": {
+                setModalShowAzioniAgenda(newValue);
             }
         }
     };
@@ -48,7 +55,8 @@ function Tabella({ dati, intestazione, contesto }) {
                 />
             </div>
             {/*Lista di componenti per la gestione dei modali*/}
-            <_azioni_servizio updated={updateParentState} show={modalShowAzioniServizio} />
+            <_azioni_tabella updated={updateParentState} show={modalShowAzioniServizio} />
+            <_azioni_tabella updated={updateParentState} show={modalShowAzioniAgenda} />
         </>
     );
 }

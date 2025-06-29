@@ -1,25 +1,25 @@
 import React, { useEffect, useCallback } from 'react';
 import env from '/variabili.json';
 
-function useAddAgenda(body) {
+function useAddPrenotazione(body) {
     const [risposta, setRisposta] = React.useState(null);
     const [trigger, setTrigger] = React.useState(false);
 
 
     const eseguiFetch = useCallback(() => {
-        setTrigger(true); 
+        setTrigger(true);
         setRisposta(null);
     }, []);
 
 
-    const fetchAgenda = useCallback(async () => {
+    const fetchPrenotazione = useCallback(async () => {
         try {
             if (!trigger)
                 return;
-            
+
             setTrigger(false);
 
-            const response = await fetch(env.URL_SERVER + "/API/nuova-agenda",
+            const response = await fetch(env.URL_SERVER + "/API/nuova-prenotazione",
                 {
                     method: 'POST',
                     headers:
@@ -43,11 +43,11 @@ function useAddAgenda(body) {
 
     useEffect(() => {
         if (trigger) {
-            fetchAgenda();
+            fetchPrenotazione();
         }
-    }, [risposta, trigger, fetchAgenda]);
+    }, [risposta, trigger, fetchPrenotazione]);
 
     return { risposta, eseguiFetch }
 }
 
-export default useAddAgenda;
+export default useAddPrenotazione;
