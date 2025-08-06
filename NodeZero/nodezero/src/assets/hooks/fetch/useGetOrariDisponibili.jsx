@@ -2,10 +2,22 @@ import React, { useEffect, useCallback } from 'react';
 import env from '/variabili.json';
 
 function useGetOrariDisponibili(prenotazione) {
-    const [recordOrariDisponibili, setRecordOrariDisponibili] = React.useState([]);
+    const [recordOrariDisponibili, setRecordOrariDisponibili] = React.useState({});
+    const [trigger, setTrigger] = React.useState(false);
+
+
+    const eseguiFetchOrari = useCallback(() => {
+        setTrigger(true);
+        setRecordOrariDisponibili(null);
+    }, []);
 
     const fetchOrari = useCallback(async () => {
         try {
+            if(!trigger)
+                return;
+
+            setTrigger(false);
+
             const response = await fetch(env.URL_SERVER + "/API/get-orari-disponibili",
                 {
                     method: 'GET',
@@ -24,19 +36,22 @@ function useGetOrariDisponibili(prenotazione) {
                 throw new Error(`Errore HTTP: ${response.status}`);
             }
 
-            const data = await response.json();
-            setRecordOrariDisponibili(data.recordset[0]); // Aggiorna lo stato dei prodotti
+            const app = await response.json();
+
+            setRecordOrariDisponibili(app);
+
         } catch (error) {
             console.error("Errore durante la chiamata API:", error);
         }
-    }, []);
+    }, [recordOrariDisponibili, trigger]);
 
     useEffect(() => {
-        fetchOrari();
-    }, [fetchOrari]);
+        if (trigger) {
+            fetchOrari();
+        }
+    }, [recordOrariDisponibili, trigger, fetchOrari]);
 
-    return { recordOrariDisponibili}
-
+    return { recordOrariDisponibili, eseguiFetchOrari }
 }
 
 export default useGetOrariDisponibili;

@@ -18,10 +18,11 @@ import useGetOrariDisponibili from '../../hooks/fetch/useGetOrariDisponibili.jsx
 let prenotazione = {
     id_agenda: null, // FIXME: recupera dal session token
     id_servizio: null,
-    giorno_prenotazione: null,
-    orario_prenotazione: null,
+    prenotazione_tm: null,
+    inizio_prestazione_tm: null,
     email: null,
-    telefono: null
+    numero_telefono: null,
+    data_odierna: null
 };
 
 
@@ -30,61 +31,68 @@ const dataOdierna = f.ottieniDataOdierna();
 function _nuova_prenotazione({ updated, show }) {
     const [fectAgende, setFetchAgende] = React.useState([]);
     const [fectServizi, setFetchServizi] = React.useState([]);
+    const [fectOrariDisponibili, setFetchOrariDisponibili] = React.useState([]);
+
     const [servizioSelezionato, setServizioSelezionato] = React.useState('');
     const [agendaSelezionato, setAgendaSelezionato] = React.useState('');
-
+    const [orarioSelezionato, setOrarioSelezionato] = React.useState('');
 
     // Ottengo i dati dalle API
     const { risposta, eseguiFetch } = useAddPrenotazione(prenotazione);
     const { recordServizi, ricaricaServizi } = useGetServizi();
     const { recordAgende, ricaricaAgende } = useGetAgende();
-    const { recordOrariDisponibili, ricaricaOrariDisponibili } = useGetOrariDisponibili(prenotazione);
+    const { recordOrariDisponibili, eseguiFetchOrari } = useGetOrariDisponibili(prenotazione);
 
     const handleHide = () => {
         updated(false);
     };
 
-    const handleAggPrenotazione = async () => {
+    const handleAggPrenotazione = () => {
         // ottengo i valori dall'input
-        prenotazione.agenda = document.getElementById('agenda-input').value;
-        prenotazione.servizio = document.getElementById('servizio-input').value;
-        prenotazione.giorno_prenotazione = document.getElementById('giorno-prenotazione-input').value;
-        prenotazione.orario_prenotazione = document.getElementById('orario-prenotazione-input').value;
+        prenotazione.id_agenda = document.getElementById('agenda-input').value;
+        prenotazione.id_servizio = document.getElementById('servizio-input').value;
+        const prenotazione_tm_ = document.getElementById('giorno-prenotazione-input').value; // data
+        const inizio_prestazione_tm_ = document.getElementById('orario-prenotazione-input').value; // orario
         prenotazione.email = document.getElementById('email-input').value;
-        prenotazione.telefono = document.getElementById('telefono-input').value;
+        prenotazione.numero_telefono = document.getElementById('telefono-input').value;
+        prenotazione.data_odierna = dataOdierna;
 
+        // elaborazione data prenotazione + orario prenotazione nel db viene inserito un timestamp
+        prenotazione.inizio_prestazione_tm = prenotazione_tm_ + ' ' + inizio_prestazione_tm_ + ':00';
+
+        console.log("prima della fecth: " + prenotazione);
         eseguiFetch();
     };
 
-    const handleAggiornamentoGGPrenotazione = (event) => {
+    const handleAggiornamentoGGPrenotazione = async (event) => {
         // Ogni volta che aggiorno la data della prenotazione, mando al server per ottenere la lista degli orari disponibili
-        prenotazione.agenda = document.getElementById('agenda-input').value;
-        prenotazione.servizio = document.getElementById('servizio-input').value;
-        prenotazione.giorno_prenotazione = document.getElementById('giorno-prenotazione-input').value;
-        prenotazione.orario_prenotazione = document.getElementById('orario-prenotazione-input').value;
+        prenotazione.id_agenda = document.getElementById('agenda-input').value;
+        prenotazione.id_servizio = document.getElementById('servizio-input').value;
+        prenotazione.prenotazione_tm = document.getElementById('giorno-prenotazione-input').value;
 
-        ricaricaOrariDisponibili();
-
-        if (recordOrariDisponibili)
-            console.log("Orari disponibili aggiornati:", recordOrariDisponibili);
+        // eseguo la fetch per ottenere la lista di orari
+        await eseguiFetchOrari();
     };
 
     // Gestore per il cambio di selezione nella select box
     const handleSelezioneRT = (event, contesto) => {
-        console.log("valuto: "+ event.target.value);
         // gestisco lo switch per riciclare l'handleselezioneRT
         switch (contesto) {
             case 0:
                 setAgendaSelezionato(event.target.value); // gestisco la select delle agende
             case 1:
                 setServizioSelezionato(event.target.value); // gestisco la select dei servizi
-            
+            case 2:
+                setOrarioSelezionato(event.target.value); // gestisco la select degli orari
+
             default:
                 break;
         }
     };
 
-
+    /**
+     * USE-EFFECT SEZIONE
+     */
     useEffect(() => {
         if(!recordServizi)
             ricaricaServizi();
@@ -96,6 +104,9 @@ function _nuova_prenotazione({ updated, show }) {
     });
 
     useEffect(() => {
+        /**
+         * Gestisco l'inserimento del nuovo ordine
+         */
         if (!risposta)
             return;
 
@@ -123,6 +134,30 @@ function _nuova_prenotazione({ updated, show }) {
             }, 5000);
         }
     }, [risposta]);
+
+    
+    useEffect(() => {
+        /**
+         * Gestisco ogni volta che il componente recordOrariDisponibili subisce una modifica tento di salvarne lo stato
+         */
+        if (!recordOrariDisponibili | !prenotazione.id_agenda | !prenotazione.id_servizio)
+            return;
+
+        // Gestisco gli undefined
+        if (recordOrariDisponibili.dati == undefined) {
+            console.warn("Non è sono stati recuperati gli orari disponibili, è stato restituito undefined. Se la list box orari disponibili è valorizzata ignora questo alert!");
+            F.toastAttenzione('Qualcosa è andato storto se il problema persiste conttatare il supporto tecnico');
+            setFetchOrariDisponibili(['']);
+        }
+        else {
+            setFetchOrariDisponibili(recordOrariDisponibili.dati);
+            const selectBoxOrari = document.getElementById('orario-prenotazione-input');
+            selectBoxOrari.disabled = false;
+
+        }
+            
+
+    }, [recordOrariDisponibili]);
 
     /**
      * Modale nuovo servizio
@@ -157,7 +192,13 @@ function _nuova_prenotazione({ updated, show }) {
                     <label htmlFor="giorno-prenotazione-input">Giorno prenotazione</label>
                 </div>
                 <div className="form-floating mb-3">
-                    <input type="time" id="orario-prenotazione-input" className="form-control" placeholder="-" />
+                    <select value={orarioSelezionato} onChange={() => handleSelezioneRT(event, 2)} className="form-select" id="orario-prenotazione-input" disabled>
+                        {
+                            fectOrariDisponibili.map((orario, index) => (
+                                <option key= { index }> {orario} </option>
+                            ))
+                        }
+                    </select>
                     <label htmlFor="orario-prenotazione-input">Orario prenotazione</label>
                 </div>
                 <div className="form-floating mb-3">

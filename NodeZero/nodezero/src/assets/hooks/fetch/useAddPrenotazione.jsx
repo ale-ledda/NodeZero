@@ -19,6 +19,8 @@ function useAddPrenotazione(body) {
 
             setTrigger(false);
 
+            console.log(body);
+
             const response = await fetch(env.URL_SERVER + "/API/nuova-prenotazione",
                 {
                     method: 'POST',
@@ -29,6 +31,7 @@ function useAddPrenotazione(body) {
                     },
                     body: JSON.stringify(body),
                 });
+            
 
             if (!response.ok) {
                 console.log(`Errore HTTP: ${response.status}`);

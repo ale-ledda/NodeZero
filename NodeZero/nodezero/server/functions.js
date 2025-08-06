@@ -98,10 +98,35 @@ function generaListaOrariDisponibili(datiAgenda, datiServizio, datiPrenotazioni)
         // converto inizio e fine in hh:mm
         ora = conversioneHHmm(ora);
         ora_fine = conversioneHHmm(ora_fine);
-        
+
         // restituisco solo gli orari disponibili escludendo quelli rpesenti nelle pause
-        orariDisponibili = orariDisponibili.filter((target) => !(target >= ora & target < ora_fine));
+        orariDisponibili = orariDisponibili.filter((target) => !((target >= ora & target < ora_fine) | gestioneCollisioni(target, datiServizio.durata, ora, ora_fine)));
     });
+
+    // confronto gli orari disponibili fin ora con le prenotazioni già effettuate
+    if (datiPrenotazioni && datiPrenotazioni.length > 0) {
+        // scorro le prenotazioni già effettuate
+        datiPrenotazioni.forEach((prenotazione) => {
+            prenotazione.forEach((prenotazione_) => {
+                // prendo l'orario della prenotazione e lo converto in hh:mm
+                let orarioPrenotazione = new Date(prenotazione_.inizio_prestazione_tm);
+                // utilizzo un orario utc per evitare problemi di fuso orario
+                orarioPrenotazione = convertoUTC(orarioPrenotazione);
+                let orarioFine = new Date(prenotazione_.inizio_prestazione_tm);
+                orarioFine = convertoUTC(orarioFine);
+
+                orarioFine = orarioFine.setMinutes(orarioFine.getMinutes() + prenotazione_.durata);
+
+                orarioFine = new Date(orarioFine);
+
+                orarioFine = conversioneHHmm(orarioFine);
+                orarioPrenotazione = conversioneHHmm(orarioPrenotazione);
+
+                // se l'orario della prenotazione è presente nella lista degli orari disponibili, lo rimuovo
+                orariDisponibili = orariDisponibili.filter((target) => !((target >= orarioPrenotazione & target < orarioFine) | gestioneCollisioni(target, prenotazione_.durata, orarioPrenotazione, orarioFine)));
+            });
+        });
+    }
 
     return orariDisponibili;
 }
@@ -117,6 +142,36 @@ function conversioneHHmm(tempo) {
         minute: '2-digit'
     });
 }
+
+function convertoUTC(tempo) {
+    /**
+     * Converte un oggetto Date in un oggetto Date con orario UTC
+     * tempo: oggetto Date esteso da convertire
+     * returns: oggetto Date con orario UTC, senza fuso orario applicato
+     */
+    tempo.setMinutes(tempo.getUTCMinutes());
+    tempo.setHours(tempo.getUTCHours());
+
+    return tempo;
+}
+
+function gestioneCollisioni(orario, durata, ora_inizio, ora_fine) {
+    /**
+     * Gestisce le collisioni tra orari, ogni orario non deve nadare in conflitto con l'orario di inizio di un altra prenotazione o pausa
+     * orario: stringa di tipo hh:mm da gestire
+     * returns: true se l'orario è disponibile, false altrimenti
+     */
+    let orario_ = new Date(2000, 10, 10, orario.toString().split(':')[0], orario.toString().split(':')[1], 0);
+
+    orario_ = orario_.setMinutes(orario_.getMinutes() + durata);
+    orario_ = new Date(orario_);
+    orario_ = conversioneHHmm(orario_);
+
+    if ((orario_ > ora_inizio) & (orario_ < ora_fine))
+        return true;
+    else
+        return false;
+};
 
 const functions = {
     getFileVariabiliJSON: getFileVariabiliJSON,
