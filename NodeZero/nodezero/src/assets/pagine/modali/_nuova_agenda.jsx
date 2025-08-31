@@ -41,7 +41,6 @@ function _nuova_agenda({ updated, show }) {
         agenda.fine = document.getElementById('disponibilita-fine-input').value;
         agenda.pause = document.getElementById('pause-input').value;
 
-        console.log(agenda.inizio);
 
         eseguiFetch();
     };
@@ -63,7 +62,6 @@ function _nuova_agenda({ updated, show }) {
                 handleHide();
                 toast_.dismiss(id_);
             }, 2000);
-
         } else {
             // alert di errore
             const errorData = risposta;

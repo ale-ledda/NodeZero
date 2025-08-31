@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 // librerie
@@ -18,16 +18,19 @@ import _azioni_tabella from '../pagine/modali/_azioni_tabella';
  */
 function Tabella({ dati, intestazione, contesto }) {
     const gridRef = useRef();
-    const [modalShowAzioniServizio, setModalShowAzioniServizio] = React.useState(false);
-    const [modalShowAzioniAgenda, setModalShowAzioniAgenda] = React.useState(false);
+    const [modalShowAzioniServizio, setModalShowAzioniServizio] = useState(false);
+    const [modalShowAzioniAgenda, setModalShowAzioniAgenda] = useState(false);
+    const [rigaSelezionata, setRigaSelezionata] = useState();
 
     const onRowClicked = useCallback((event) => {
         switch (contesto){
             case "azioniServizio": {
                 setModalShowAzioniServizio(true); // TODO: Gestire le operazioni e API attraverso l'id_servizio univoco -> event.data.id_servizio
+                setRigaSelezionata(event.node.rowIndex);
             }
             case "azioniAgenda": {
                 setModalShowAzioniAgenda(true);
+                setRigaSelezionata(event.node.rowIndex);
             }
         }
     }, []);
@@ -55,8 +58,8 @@ function Tabella({ dati, intestazione, contesto }) {
                 />
             </div>
             {/*Lista di componenti per la gestione dei modali*/}
-            <_azioni_tabella updated={updateParentState} show={modalShowAzioniServizio} />
-            <_azioni_tabella updated={updateParentState} show={modalShowAzioniAgenda} />
+            <_azioni_tabella updated={updateParentState} show={modalShowAzioniServizio} contesto={contesto} />
+            <_azioni_tabella updated={updateParentState} show={modalShowAzioniAgenda} contesto={contesto} dati={dati} indice={rigaSelezionata} />
         </>
     );
 }

@@ -9,6 +9,39 @@ let id_agenda = null;
 let id_ordine = null;
 
 
+/**[get-appuntamenti - API get]
+ * Passato nel header l'id della agenda ottengo tutti gli appuntamenti della agenda passata
+ * return : una lista di oggetti che rappresentano gli appuntamenti [{titolo: - }, {inizio: -}, {fine: -}]
+ */
+router.get('/get-appuntamenti', (req, res) => {
+    (async () => {
+        try {
+            pool = await sql.connect(f.getFileVariabiliJSON().CONNECTION_STRING);
+            const request = pool.request();
+            const id_agenda = BigInt(req.headers.id_agenda);
+
+            // Recupero i dati che mi servono dagli ordini
+            const query_appuntamenti = 'SELECT inizio_prestazione_tm, email, numero_telefono, servizio, durata FROM Ordini A LEFT JOIN (SELECT id_servizio as id_servizio_, servizio, durata FROM Servizi) B ON A.id_servizio = B.id_servizio_ WHERE id_agenda=@id_agenda';
+            request.input('id_agenda', sql.BigInt, id_agenda);
+            let result_qa = await request.query(query_appuntamenti);
+
+            // query non settata
+            if (!result_qa)
+                return res.status(404).json({ stato: 404, messaggio: "Problema con il recupero dei dati della agenda. Riprova" });
+
+            // intercetto la casistica agenda vuota
+            if (result_qa.rowsAffected == 0)
+                return res.status(200).json({ stato: 200, messaggio: "Questa agenda non ha appuntamenti per ora" });
+
+            return res.status(200).json({ stato: 200, messaggio: "", dati: result_qa.recordsets });
+        }
+        catch (error) {
+            console.log("exception: " + error);
+            return res.status(500).json({ stato: 500, messaggio: "Errore durante l'ottenimento degli appuntamenti per questa agenda. errore:" + error, ex: error });
+        }
+    })()
+});
+
 /**[nuova-prenotazione - API post]
  * Passati i dati di una prenotazione effetuo l'inserimento nel database
  */
