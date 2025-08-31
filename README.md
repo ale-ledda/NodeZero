@@ -1,4 +1,4 @@
-NodeZero - aplha pubblica
+NodeZero - alpha pubblica
 - 
 versione 1.1 rilasciata il 31 agosto 2025
 
