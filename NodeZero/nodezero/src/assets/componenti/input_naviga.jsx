@@ -28,7 +28,8 @@ function Input_naviga({ items }) {
         setSuggestions([]);
         setShowSuggestions(false);
         // creo il path per gestire il redirect
-        window.location.href = '/'+ suggestion;
+        window.location.href = '/' + suggestion;
+        localStorage.setItem('client', suggestion); // salvo in local storage il client
     };    
 
     return (

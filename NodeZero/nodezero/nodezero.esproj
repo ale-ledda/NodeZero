@@ -10,6 +10,5 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="public\" />
-    <Folder Include="server\API\" />
   </ItemGroup>
 </Project>

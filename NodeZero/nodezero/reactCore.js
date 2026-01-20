@@ -29,27 +29,8 @@ const impostazioniToastCaricamento = {
     transition: Slide,
 }
 
-function toastSuccesso1(msg) {
-    try {
-        toast.success("aa", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: false,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "light",
-            transition: "Slide"
-        });
-    }
-    catch (error) {
-        console.log(error);
-    } 
-};
-
 function toastSuccesso(msg) {
-    return toast.success(msg, { impostazioniComuniToast });
+     return toast.success(msg, { impostazioniComuniToast });    
 };
 
 function toastInformativo(msg) {
@@ -75,16 +56,47 @@ function ottieniDataOdierna() {
      */
     const today = new Date();
     return today.toISOString().slice(0, 10);
-}
+};
+
+function gestiscoRispostaAPI(r) {
+    /**
+     * Passato un oggetto interpreto lo stato e sulla base di quello che viene restituito, mostro un pop-up piuttosto che un altro
+     */
+    const s = r.stato; // contiene lo stato di ritorno dalla API
+    let flag = false;
+
+    if (flag == false) {
+        flag = true;
+
+        switch (true) {
+            case (s == 200 || s == 201): // sucesso
+                {
+                    toastSuccesso(r.messaggio);
+                    break;
+                }
+            case (s == 404 || s == 500): // errore
+                {
+                    toastErrore(r.messaggio);
+                    break;
+                }
+            default:
+                {
+                    toastInformativo("Stato non registrato contattare l'amministratore"); // alert
+                    break;
+                }
+        }
+    }
+};
+
 
 const functions = {
     toastSuccesso: toastSuccesso,
     toastInformativo: toastInformativo,
     toastAttenzione: toastAttenzione,
     toastErrore: toastErrore,
-    toastSuccesso1: toastSuccesso1,
+    gestiscoRispostaAPI: gestiscoRispostaAPI,
     toastCaricamento: toastCaricamento,
-    ottieniDataOdierna: ottieniDataOdierna,
+    ottieniDataOdierna: ottieniDataOdierna
 };
 
 export default functions;

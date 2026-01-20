@@ -15,4 +15,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    color: rgb(137, 207, 240); /*Colore della applicazione*/
+}
+
+.homeButton{
+    /*La icona home deve stare a cavallo del modale*/
+    position: relative;
+    top: -7rem;
+}
+
+.proprietaRiga{
+    position: relative;
+    top: -5rem;
 }

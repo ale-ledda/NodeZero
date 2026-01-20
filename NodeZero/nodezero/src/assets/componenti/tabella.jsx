@@ -16,11 +16,12 @@ import _azioni_tabella from '../pagine/modali/_azioni_tabella';
  * @param contesto: il contesto in cui si trova la tabella, utile per gestire le azioni al click della riga
  * @returns: Una tabella composta con la libreria ag-grid-react
  */
-function Tabella({ dati, intestazione, contesto }) {
+function Tabella({ updated, dati, intestazione, contesto }) {
     const gridRef = useRef();
     const [modalShowAzioniServizio, setModalShowAzioniServizio] = useState(false);
     const [modalShowAzioniAgenda, setModalShowAzioniAgenda] = useState(false);
     const [rigaSelezionata, setRigaSelezionata] = useState();
+
 
     const onRowClicked = useCallback((event) => {
         switch (contesto){
@@ -44,6 +45,7 @@ function Tabella({ dati, intestazione, contesto }) {
                 setModalShowAzioniAgenda(newValue);
             }
         }
+        updated(false);
     };
 
     return (

@@ -1,8 +1,7 @@
 const fs = require('fs');
 const { Time } = require('mssql');
 const path = require('path');
-//const toastify = require('react-toastify');
-
+const jwt = require('jsonwebtoken');
 // VARIABILI
 let id = null;
 
@@ -52,7 +51,6 @@ function generaID(dim = 7) {
     for (let i = 0; i < dim; i++) {
         bigIntValue = (bigIntValue << BigInt(dim)) | BigInt(buffer[i]);
     }
-
     return String(bigIntValue).slice(0, 19);
 }
 
@@ -68,12 +66,12 @@ function generaListaOrariDisponibili(datiAgenda, datiServizio, datiPrenotazioni)
 
     // parto dall'ora di apertura della agenda e cro una lista di orari, ad intervalli di x minuti (in base al servizio attuale), fino all'orario di chiusura
     let orariDisponibili = [];
-
+    
     // estraggo dal db l'ora di inizio appuntamenti per l'agenda
-    let ora_ = datiAgenda.ora_inizio.toString().split(':');
+    let ora_ = datiAgenda.orario_inizio.toString().split(':');
     let ora = new Date(0, 0, 0, ora_[0], ora_[1]);
     //estraggo dal db l'ora di fine appuntamenti per l'agenda
-    let ora_fine_ = datiAgenda.ora_fine.toString().split(':');
+    let ora_fine_ = datiAgenda.orario_fine.toString().split(':');
     let ora_fine = new Date(0, 0, 0, ora_fine_[0], ora_fine_[1]);
 
     // creo la lista di possibili appuntamenti per questa agenda
@@ -81,10 +79,10 @@ function generaListaOrariDisponibili(datiAgenda, datiServizio, datiPrenotazioni)
         // per ogni intervallo dato dal calcolo del servizio, lo iserisco nella lista con cast a hh:mm
         orariDisponibili.push(conversioneHHmm(ora));
     }
-
+    
     // ottengo la lista in formatto hh:mm degli orari da escludere (pause)
-    let listaOrariPausa = datiAgenda.orari_pausa.toString().split(';');
-
+    let listaOrariPausa = datiAgenda.orario_pause_aggregate.toString().split(';');
+    
     // per ogni elemento della lista listaOrariPausa scorro e mi creo una data di inizio e di fine
     listaOrariPausa.forEach((orario) => {
         // gestisco i range
@@ -104,30 +102,24 @@ function generaListaOrariDisponibili(datiAgenda, datiServizio, datiPrenotazioni)
     });
 
     // confronto gli orari disponibili fin ora con le prenotazioni già effettuate
-    if (datiPrenotazioni && datiPrenotazioni.length > 0) {
+    if (datiPrenotazioni && datiPrenotazioni.recordset.length > 0) {
         // scorro le prenotazioni già effettuate
-        datiPrenotazioni.forEach((prenotazione) => {
-            prenotazione.forEach((prenotazione_) => {
-                // prendo l'orario della prenotazione e lo converto in hh:mm
-                let orarioPrenotazione = new Date(prenotazione_.inizio_prestazione_tm);
-                // utilizzo un orario utc per evitare problemi di fuso orario
-                orarioPrenotazione = convertoUTC(orarioPrenotazione);
-                let orarioFine = new Date(prenotazione_.inizio_prestazione_tm);
-                orarioFine = convertoUTC(orarioFine);
+        datiPrenotazioni.recordset.forEach((prenotazione) => {
+            // prendo l'orario della prenotazione e lo converto in hh:mm (inizio e fine)
+            let orarioPrenotazione = new Date(prenotazione.inizio_prestazione_tm);
+            let orarioFine = new Date(prenotazione.inizio_prestazione_tm);
 
-                orarioFine = orarioFine.setMinutes(orarioFine.getMinutes() + prenotazione_.durata);
+            // Aggiungo i minuti del servizio desiderato al orario di fine
+            orarioFine = orarioFine.setMinutes(orarioFine.getMinutes() + prenotazione.durata);
+            orarioFine = new Date(orarioFine);
+            // Converto nel formato HHmm per praticità
+            orarioFine = conversioneHHmm(orarioFine);
+            orarioPrenotazione = conversioneHHmm(orarioPrenotazione);
 
-                orarioFine = new Date(orarioFine);
-
-                orarioFine = conversioneHHmm(orarioFine);
-                orarioPrenotazione = conversioneHHmm(orarioPrenotazione);
-
-                // se l'orario della prenotazione è presente nella lista degli orari disponibili, lo rimuovo
-                orariDisponibili = orariDisponibili.filter((target) => !((target >= orarioPrenotazione & target < orarioFine) | gestioneCollisioni(target, prenotazione_.durata, orarioPrenotazione, orarioFine)));
-            });
+            // se l'orario della prenotazione (con aggiunto il tempo del nuovo servizio) è presente nella lista degli orari disponibili, lo rimuovo
+            orariDisponibili = orariDisponibili.filter((target) => !((target >= orarioPrenotazione & target < orarioFine) | gestioneCollisioni(target, prenotazione.durata, orarioPrenotazione, orarioFine)));
         });
     }
-
     return orariDisponibili;
 }
 
@@ -173,10 +165,39 @@ function gestioneCollisioni(orario, durata, ora_inizio, ora_fine) {
         return false;
 };
 
+function uriPiattaforma() {
+    return 'http://localhost:52968'
+};
+
+/**
+ * Passati il token e la chiave decifro il token e restituisco un oggetto con i valori in chiaro del token memorizzato
+ * @param {any} token_jwt il token jwt creato nel server
+ * @param {any} JWT_KEY la chiave di cifratura e decifratira token presente nelle variabili di ambiente
+ * @param {any} res è la risposta della API, viene passato per parametrizzare (res)
+ */
+function estraiJWT(res, token_jwt, JWT_KEY) {
+    let decodificato = null;
+
+    jwt.verify(token_jwt, JWT_KEY, (err, decoded) => {
+        if (err) {
+            // Se il token è alterato o scaduto
+            return res.status(403).json({ message: "Token non valido" });
+        }
+
+        // Se è valido, 'decoded' contiene i dati dell'utente (es. userId)
+        //console.log(decoded);
+        decodificato = decoded;
+    })
+
+    return decodificato;
+};
+
 const functions = {
     getFileVariabiliJSON: getFileVariabiliJSON,
     generaID_univoco: generaID_univoco,
     generaListaOrariDisponibili: generaListaOrariDisponibili,
+    uriPiattaforma: uriPiattaforma,
+    estraiJWT: estraiJWT,
 };
 
 module.exports = functions;

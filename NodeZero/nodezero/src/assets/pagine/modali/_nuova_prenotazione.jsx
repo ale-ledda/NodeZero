@@ -9,39 +9,51 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Modale from '../../componenti/modale';
 import Button from 'react-bootstrap/Button';
 // hooks
-import useAddPrenotazione from '../../hooks/fetch/useAddPrenotazione.jsx';
-import useGetAgende from '../../hooks/fetch/useGetAgende.jsx';
-import useGetServizi from '../../hooks/fetch/useGetServizi.jsx';
-import useGetOrariDisponibili from '../../hooks/fetch/useGetOrariDisponibili.jsx';
+import useGetElement from '../../hooks/fetch/useGetElement.jsx';
+import usePostElement from '../../hooks/fetch/usePostElement.jsx';
 
 // variabili
-let prenotazione = {
-    id_agenda: null, // FIXME: recupera dal session token
+const dataOdierna = f.ottieniDataOdierna();
+
+let header = {
+    endpoint: '',
+    id: null,
+    // dati sulla prenotazione
+    id_agenda: null, 
     id_servizio: null,
     prenotazione_tm: null,
+    inizio_prestazione_tm: null,
+    email: null,
+    numero_telefono: null,
+    data_odierna: null,
+    giorno_scelto: null,
+    path: null
+};
+
+let body = {
+    id_agenda: null,
+    id_servizio: null,
     inizio_prestazione_tm: null,
     email: null,
     numero_telefono: null,
     data_odierna: null
 };
 
-
-const dataOdierna = f.ottieniDataOdierna();
-
 function _nuova_prenotazione({ updated, show }) {
-    const [fectAgende, setFetchAgende] = React.useState([]);
-    const [fectServizi, setFetchServizi] = React.useState([]);
-    const [fectOrariDisponibili, setFetchOrariDisponibili] = React.useState([]);
-
-    const [servizioSelezionato, setServizioSelezionato] = React.useState('');
-    const [agendaSelezionato, setAgendaSelezionato] = React.useState('');
-    const [orarioSelezionato, setOrarioSelezionato] = React.useState('');
+    const [fectOrariDisponibili, setFetchOrariDisponibili] = useState([]);
+    // Gestisco le  selectbox
+    const [servizioSelezionato, setServizioSelezionato] = useState('');
+    const [agendaSelezionato, setAgendaSelezionato] = useState('');
+    const [orarioSelezionato, setOrarioSelezionato] = useState('');
 
     // Ottengo i dati dalle API
-    const { risposta, eseguiFetch } = useAddPrenotazione(prenotazione);
-    const { recordServizi, ricaricaServizi } = useGetServizi();
-    const { recordAgende, ricaricaAgende } = useGetAgende();
-    const { recordOrariDisponibili, eseguiFetchOrari } = useGetOrariDisponibili(prenotazione);
+    const { risposta: rispostaFetchPostElement_AggiungiPrenotazione, eseguiFetch: eseguiFetchPostElement_AggiungiPrenotazione } = usePostElement(header, body);
+    const { risposta: rispostaFetchGetElement_OrariDisponibili, eseguiFetch: eseguiFetchGetElement_OrariDisponibili } = useGetElement(header, 2);
+    const { risposta: rispostaFetchGetElement_Servizi, eseguiFetch: eseguiFetchGetElement_Servizi } = useGetElement(header);
+    const { risposta: rispostaFetchGetElement_Agende, eseguiFetch: eseguiFetchGetElement_Agende } = useGetElement(header);
+
+    // Gestione degli errori
+    //const [statoRispostaGetOrari, setStatoRispostaGetOrari] = React.useState(400);
 
     const handleHide = () => {
         updated(false);
@@ -49,34 +61,36 @@ function _nuova_prenotazione({ updated, show }) {
 
     const handleAggPrenotazione = () => {
         // ottengo i valori dall'input
-        prenotazione.id_agenda = document.getElementById('agenda-input').value;
-        prenotazione.id_servizio = document.getElementById('servizio-input').value;
+        body.id_agenda = document.getElementById('agenda-input').value;
+        body.id_servizio = document.getElementById('servizio-input').value;
         const prenotazione_tm_ = document.getElementById('giorno-prenotazione-input').value; // data
         const inizio_prestazione_tm_ = document.getElementById('orario-prenotazione-input').value; // orario
-        prenotazione.email = document.getElementById('email-input').value;
-        prenotazione.numero_telefono = document.getElementById('telefono-input').value;
-        prenotazione.data_odierna = dataOdierna;
+        body.email = document.getElementById('email-input').value;
+        body.numero_telefono = document.getElementById('telefono-input').value;
+        body.data_odierna = dataOdierna;
 
         // elaborazione data prenotazione + orario prenotazione nel db viene inserito un timestamp
-        prenotazione.inizio_prestazione_tm = prenotazione_tm_ + ' ' + inizio_prestazione_tm_ + ':00';
+        body.inizio_prestazione_tm = prenotazione_tm_ + ' ' + inizio_prestazione_tm_ + ':00';
 
-        console.log("prima della fecth: " + prenotazione);
-        eseguiFetch();
+        header.endpoint = 'nuova-prenotazione';
+        eseguiFetchPostElement_AggiungiPrenotazione();
     };
 
     const handleAggiornamentoGGPrenotazione = async (event) => {
         // Ogni volta che aggiorno la data della prenotazione, mando al server per ottenere la lista degli orari disponibili
-        prenotazione.id_agenda = document.getElementById('agenda-input').value;
-        prenotazione.id_servizio = document.getElementById('servizio-input').value;
-        prenotazione.prenotazione_tm = document.getElementById('giorno-prenotazione-input').value;
+        header.id_agenda = document.getElementById('agenda-input').value;
+        header.id_servizio = document.getElementById('servizio-input').value;
+        header.prenotazione_tm = document.getElementById('giorno-prenotazione-input').value;
+        header.giorno_scelto = new Date(document.getElementById('giorno-prenotazione-input').value).getDay(); // ottengo il giorno della settimana (0-6) la domenica è 0
+        header.giorno_scelto = header.giorno_scelto == 0 ? 7 : header.giorno_scelto;
 
         // eseguo la fetch per ottenere la lista di orari
-        await eseguiFetchOrari();
+        header.endpoint = 'orari-disponibili';
+        eseguiFetchGetElement_OrariDisponibili();
     };
 
     // Gestore per il cambio di selezione nella select box
     const handleSelezioneRT = (event, contesto) => {
-        // gestisco lo switch per riciclare l'handleselezioneRT
         switch (contesto) {
             case 0:
                 setAgendaSelezionato(event.target.value); // gestisco la select delle agende
@@ -90,31 +104,37 @@ function _nuova_prenotazione({ updated, show }) {
         }
     };
 
+
     /**
      * USE-EFFECT SEZIONE
      */
-    useEffect(() => {
-        if(!recordServizi)
-            ricaricaServizi();
-        if(!recordAgende)
-            ricaricaAgende();
 
-        setFetchAgende(recordAgende);
-        setFetchServizi(recordServizi);
-    });
+    // Dico al'API di mandare i dati una sola volta all'apertura della pagina
+    useEffect(() => {
+        header.path = localStorage.getItem('client');
+
+        //Gestisco l'agenda
+        header.endpoint = 'agende';
+        eseguiFetchGetElement_Agende();
+
+        // Gestisco i servizi
+        header.endpoint = 'servizi';
+        eseguiFetchGetElement_Servizi();
+    }, []);
+
 
     useEffect(() => {
         /**
          * Gestisco l'inserimento del nuovo ordine
          */
-        if (!risposta)
+        if (!rispostaFetchPostElement_AggiungiPrenotazione)
             return;
 
         const [id_, toast_, impostazioni_] = f.toastCaricamento("Inserimento del nuovo ordine in corso...");
 
-        if (risposta.stato == 200) {
+        if (rispostaFetchPostElement_AggiungiPrenotazione.stato == 200) {
             // successo
-            const data = risposta;
+            const data = rispostaFetchPostElement_AggiungiPrenotazione;
             const impostazioniLocaliOK_ = { render: data.messaggio, type: "success", isLoading: false };
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliOK_ });
 
@@ -126,43 +146,49 @@ function _nuova_prenotazione({ updated, show }) {
 
         } else {
             // alert di errore
-            const errorData = risposta;
+            const errorData = rispostaFetchPostElement_AggiungiPrenotazione;
             const impostazioniLocaliErrore_ = { render: errorData.messaggio, type: "error", isLoading: false };
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliErrore_ });
             setTimeout(() => {
                 toast_.dismiss(id_);
             }, 5000);
         }
-    }, [risposta]);
+    }, [rispostaFetchPostElement_AggiungiPrenotazione]);
 
     
     useEffect(() => {
         /**
          * Gestisco ogni volta che il componente recordOrariDisponibili subisce una modifica tento di salvarne lo stato
          */
-        if (!recordOrariDisponibili | !prenotazione.id_agenda | !prenotazione.id_servizio)
+        if (!rispostaFetchGetElement_OrariDisponibili | !header.id_agenda | !header.id_servizio)
             return;
 
+        if (rispostaFetchGetElement_OrariDisponibili == 'E1') {
+            setFetchOrariDisponibili(['Non disponibile']);
+            document.getElementById('orario-prenotazione-input').disabled = true;
+            return;
+        }
+        
         // Gestisco gli undefined
-        if (recordOrariDisponibili.dati == undefined) {
-            console.warn("Non è sono stati recuperati gli orari disponibili, è stato restituito undefined. Se la list box orari disponibili è valorizzata ignora questo alert!");
-            F.toastAttenzione('Qualcosa è andato storto se il problema persiste conttatare il supporto tecnico');
+        if (rispostaFetchGetElement_OrariDisponibili == undefined) {
+            console.warn("Non è sono stati recuperati gli orari disponibili, &egrave; stato restituito undefined. Se la list box orari disponibili è valorizzata ignora questo alert!");
+            f.toastAttenzione('Qualcosa è andato storto se il problema persiste conttatare il supporto tecnico'); // la è non la legge
             setFetchOrariDisponibili(['']);
         }
         else {
-            setFetchOrariDisponibili(recordOrariDisponibili.dati);
+            setFetchOrariDisponibili(rispostaFetchGetElement_OrariDisponibili);
             const selectBoxOrari = document.getElementById('orario-prenotazione-input');
             selectBoxOrari.disabled = false;
-
+            document.getElementById('orario-prenotazione-input').disabled = false;
         }
-            
 
-    }, [recordOrariDisponibili]);
+
+    }, [rispostaFetchGetElement_OrariDisponibili]);
 
     /**
-     * Modale nuovo servizio
+     * Modale nuova_prenotazione
      */
-    const nuovo_servizio = {
+    const nuova_prenotazione = {
         key: "modale-nuova-prenotazione",
         titolo: "Nuova prenotazione",
         corpo: (
@@ -170,7 +196,7 @@ function _nuova_prenotazione({ updated, show }) {
                 <div className="form-floating mb-3">
                     <select value={agendaSelezionato} onChange={() => handleSelezioneRT(event, 0)} className="form-select" id="agenda-input">
                         {
-                            fectAgende.map((agenda) => (
+                            rispostaFetchGetElement_Agende.map((agenda) => (
                                 <option key={agenda.id_agenda} value={agenda.id_agenda}> {agenda.nome_agenda} </option>
                             ))
                         }
@@ -180,7 +206,7 @@ function _nuova_prenotazione({ updated, show }) {
                 <div className="form-floating mb-3">
                     <select value={servizioSelezionato} onChange={() => handleSelezioneRT(event, 1)} className="form-select" id="servizio-input">
                         {
-                            fectServizi.map((servizi) => (
+                            rispostaFetchGetElement_Servizi.map((servizi) => (
                                 <option key={servizi.id_servizio} value={servizi.id_servizio}> {servizi.servizio} </option>
                             ))
                         }
@@ -218,7 +244,7 @@ function _nuova_prenotazione({ updated, show }) {
 
     return (
         <>
-            <Modale show={show} onHide={handleHide} modale={nuovo_servizio} solo_corpo='false' />
+            <Modale show={show} onHide={handleHide} modale={nuova_prenotazione} solo_corpo='false' />
             <ToastContainer />
         </>
     );

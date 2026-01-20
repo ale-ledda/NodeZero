@@ -1,0 +1,26 @@
+.frame-elemento {
+    display: flex;
+    margin-top: 3rem;
+    width: 100%;
+}
+.frame-form {
+    display: flex;
+    flex-direction: row;
+    width: 95%;
+}
+.frame-pausa {
+    display: flex;
+    flex-direction: row;
+    width: 95%;
+    justify-content: center;
+}
+
+.elemento_inizio{
+    width:100%;
+}
+.elemento_fine {
+    width: 100%;
+}
+.elemento_pausa {
+    width: 100%;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 // librerie
 import env from '/variabili.json';
@@ -7,53 +7,67 @@ import f from '../../../../reactCore.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 //componenti
 import Modale from '../../componenti/modale';
+import FGA from '../../componenti/form_giorno_agenda';
 import Button from 'react-bootstrap/Button';
 // hooks
-import useAddAgenda from '../../hooks/fetch/useAddAgenda.jsx';
+import usePostElement from '../../hooks/fetch/usePostElement.jsx';
 
 
-// variabili
-let agenda = {
-    id_client: 102, // FIXME: recupera dal session token
+let header = {
+    endpoint: 'nuova-agenda',
+    id: null
+};
+
+let body = {
+    id_client: null,
     nome_agenda: null,
     descrizione: null,
     foto: null,
-    inizio: null,
-    fine: null,
-    pause: null
+    orario_inizio: [],
+    orario_fine: [],
+    pause: [],
+    giorno: []
 };
 
-
 function _nuova_agenda({ updated, show }) {
+    // Ottengo i dati dalle API
+    const { risposta: rispostaFetchPostElement_AggiungiAgenda, eseguiFetch: eseguiFetchPostElement_AggiungiAgenda } = usePostElement(header, body);
 
     const handleHide = () => {
         updated(false);
     };
 
-    const { risposta, eseguiFetch } = useAddAgenda(agenda);
-
-
     const handleAggServizio = async () => {
         // ottengo i valori dall'input
-        agenda.nome_agenda = document.getElementById('titolo-input').value;
-        agenda.descrizione = document.getElementById('descrizione-input').value;
-        agenda.inizio = document.getElementById('disponibilita-inizio-input').value;
-        agenda.fine = document.getElementById('disponibilita-fine-input').value;
-        agenda.pause = document.getElementById('pause-input').value;
+        body.nome_agenda = document.getElementById('titolo-input').value;
+        body.descrizione = document.getElementById('descrizione-input').value;
 
+        for (var i = 1; i < 8; i++)
+        {
+            var inizio = document.getElementById('disponibilita-inizio-' + i + '-input').value;
+            var fine = document.getElementById('disponibilita-fine-' + i + '-input').value;
+            var pausa = document.getElementById('pause-' + i + '-input').value;
 
-        eseguiFetch();
+            if (inizio != '' & fine != '') {
+                body.orario_inizio.push(inizio);
+                body.orario_fine.push(fine);
+                body.pause.push(pausa);
+                body.giorno.push(i);
+            }
+        }
+
+        eseguiFetchPostElement_AggiungiAgenda();
     };
 
-    React.useEffect(() => {
-        if (!risposta)
+    useEffect(() => {
+        if (!rispostaFetchPostElement_AggiungiAgenda)
             return;
 
         const [id_, toast_, impostazioni_] = f.toastCaricamento("Inserimento della nuova agenda in corso...");
 
-        if (risposta.stato == 200) {
+        if (rispostaFetchPostElement_AggiungiAgenda.stato == 200) {
             // successo
-            const data = risposta;
+            const data = rispostaFetchPostElement_AggiungiAgenda;
             const impostazioniLocaliOK_ = { render: data.messaggio, type: "success", isLoading: false };
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliOK_ });
 
@@ -64,14 +78,14 @@ function _nuova_agenda({ updated, show }) {
             }, 2000);
         } else {
             // alert di errore
-            const errorData = risposta;
+            const errorData = rispostaFetchPostElement_AggiungiAgenda;
             const impostazioniLocaliErrore_ = { render: errorData.messaggio, type: "error", isLoading: false };
             toast_.update(id_, { ...impostazioni_, ...impostazioniLocaliErrore_ });
             setTimeout(() => {
                 toast_.dismiss(id_);
             }, 5000);
         }
-    }, [risposta]);
+    }, [rispostaFetchPostElement_AggiungiAgenda]);
 
     /**
      * Modale nuovo servizio
@@ -89,18 +103,13 @@ function _nuova_agenda({ updated, show }) {
                     <input type="text" id="descrizione-input" className="form-control" placeholder="-" />
                     <label htmlFor="descrizione-input">Descrizione</label>
                 </div>
-                <div className="form-floating mb-3">
-                    <input type="time" id="disponibilita-inizio-input" className="form-control" placeholder="-" />
-                    <label htmlFor="disponibilita-inizio-input">Appuntamenti da:</label>
-                </div>
-                <div className="form-floating mb-3">
-                    <input type="time" id="disponibilita-fine-input" className="form-control" placeholder="-" />
-                    <label htmlFor="disponibilita-fine-input">Appuntamenti fino a:</label>
-                </div>
-                <div className="form-floating mb-3">
-                    <input type="text" id="pause-input" className="form-control" placeholder="-" />
-                    <label htmlFor="pause-input">Pause</label>
-                </div>
+                <FGA giorno="Luned&igrave;" indice="1"/>
+                <FGA giorno="Marted&igrave;" indice="2" />
+                <FGA giorno="Mercoled&igrave;" indice="3" />
+                <FGA giorno="Gioved&igrave;" indice="4" />
+                <FGA giorno="Venerd&igrave;" indice="5" />
+                <FGA giorno="Sabato" indice="6" />
+                <FGA giorno="Domenica" indice="7" />
             </div>
         ),
         azioni: [

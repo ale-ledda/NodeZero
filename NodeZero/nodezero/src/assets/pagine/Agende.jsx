@@ -1,6 +1,8 @@
 import React from 'react';
+import { useEffect, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { useNavigate } from 'react-router-dom';
 // librerie
 import f from '../../../reactCore.js';
 import env from '/variabili.json';
@@ -12,25 +14,54 @@ import Navbar_inferiore from '../componenti/navbar_inferiore';
 import _nuova_agenda from '../pagine/modali/_nuova_agenda.jsx';
 import Tabella from '../componenti/tabella.jsx';
 // hooks
-import useGetAgende from '../hooks/fetch/useGetAgende.jsx'
+import useGetElement from '../hooks/fetch/useGetElement.jsx';
+import usePostElement from '../hooks/fetch/usePostElement.jsx';
+
+// HEADER - per gestire un alta modulabilità configuriamo qua i vari parametri
+const header = {
+    endpoint: null
+};
 
 function Agende() {
     ModuleRegistry.registerModules([AllCommunityModule]);
-
-    const [modalShow, setModalShow] = React.useState(false);
+    const navigate = useNavigate();
+    const [modalShow, setModalShow] = useState(false);
+    // Stati delle API
+    const { risposta: rispostaFetchGetElement, eseguiFetch: eseguiFetchGetElement } = useGetElement(header);
+    const { risposta: rispostaFetchPostElement, eseguiFetch: eseguiFetchPostElement } = usePostElement(header);
 
     const updateParentState = (newValue) => {
         setModalShow(newValue);
-        ricaricaAgende();
+        eseguiFetchGetElement();
     };
 
-    const [colonne, setColonne] = React.useState([
+    const [colonne, setColonne] = useState([
         { field: "id_agenda", hide: true },
         { field: "nome_agenda", flex: 1, resizable: false, draggable: false },
         { field: "descrizione", flex: 1, resizable: false, draggable: false },
     ]);
 
-    const { recordAgende, ricaricaAgende } = useGetAgende();
+
+    // USE EFFECT
+    useEffect(() => {
+        //Prima di tutto verifico che sei loggato
+        header.endpoint = 'verifico-token-sessione';
+        eseguiFetchPostElement();
+    }, []);
+
+    useEffect(() => {
+        // Richiedo i dati solo se sei loggato
+        if (rispostaFetchPostElement != undefined) {
+            if (rispostaFetchPostElement.stato == 200) {
+                header.endpoint = 'agende';
+                header.path = localStorage.getItem('client');
+                eseguiFetchGetElement();
+            }
+            else
+                navigate('/');
+        }
+    }, [rispostaFetchPostElement]);
+
 
     return (
         <>
@@ -41,7 +72,7 @@ function Agende() {
             </div>
             <_nuova_agenda updated={updateParentState} show={modalShow} />
 
-            <Tabella dati={recordAgende} intestazione={colonne} contesto="azioniAgenda" />
+            <Tabella updated={updateParentState} dati={rispostaFetchGetElement} intestazione={colonne} contesto="azioniAgenda" />
 
             <Navbar_inferiore />
             <ToastContainer />

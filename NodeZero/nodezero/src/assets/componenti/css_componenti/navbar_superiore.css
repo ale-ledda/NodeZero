@@ -9,16 +9,16 @@
     align-content: center;
 }
 
-.navbar-brand{
+.navbar-brand {
     padding-left: 1rem;
-    
+    color: rgb(137, 207, 240); /*Colore della applicazione*/
 }
 
 .icon-logo-node-zero {
     font-size: 4rem;
     padding-left: 1rem;
     padding-right: 1rem;
-    color: black;
+    color: rgb(137, 207, 240); /*Colore della applicazione*/
 }
 
 .logo-container {

@@ -15,3 +15,11 @@
     align-items: center;
     justify-content: center;
 }
+
+.stileElemento, .stileElemento:focus{
+    color: rgb(120, 120, 120);
+}
+
+.stileElementoHome, .stileElementoHome:focus {
+    color: rgb(137, 207, 240); /*Colore della applicazione*/
+}

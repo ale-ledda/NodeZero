@@ -8,36 +8,36 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import itLocale from '@fullcalendar/core/locales/it'; // Importa il file di localizzazione per l'italiano
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
-import useGetAppuntamenti from '../../hooks/fetch/useGetAppuntamenti.jsx';
+import useGetElement from '../../hooks/fetch/useGetElement.jsx';
 
 // stili
 import 'bootstrap/dist/css/bootstrap.min.css';
 //componenti
 
 // variabili
-let header = {
-    id_agenda: '703253447104679'
-}
+const header = {
+    endpoint: 'appuntamenti',
+    id: null
+};
 
-function _calendario_appuntamenti({ nomeAgenda }) {
+function _calendario_appuntamenti({ nomeAgenda, idAgenda}) {
     /**
      * Modale calendario
      * modale in apertura al click sulla tabella alla voce visualizza,
      * mostra il calendario degli appuntamenti per l'agenda selezionata.
      */
 
+    //imposto le variabili di header
+    header.id = idAgenda;
+
     // TODO: Inserire la action che quando si clicca sul evento prenotato apre il dialer delle chiamate per rintracciare l'utente
     const [appuntamenti, setAppuntamenti] = useState(null);
-    const { recordAppuntamenti, eseguiFetchAppuntamenti } = useGetAppuntamenti(header);
+    // Stati delle API
+    let { risposta: rispostaFetchGetElement, eseguiFetch: eseguiFetchGetElement } = useGetElement(header);
     const [appuntamentiFormattati, setAppuntamentiFormattati] = useState(null);
 
     useEffect(() => {
         if (appuntamenti) {
-            //let orarioFine = new Date(prenotazione_.inizio_prestazione_tm);
-            //orarioFine = convertoUTC(orarioFine);
-
-            //orarioFine = orarioFine.setMinutes(orarioFine.getMinutes() + prenotazione_.durata);
-
             const appuntamenti_ = appuntamenti[0].map(elemento => ({
                     title: elemento.servizio + " # cliente: " + elemento.email,
                     start: elemento.inizio_prestazione_tm,
@@ -50,21 +50,20 @@ function _calendario_appuntamenti({ nomeAgenda }) {
 
     useEffect(() => {
         // mi assicuro che la fetch restituisca un oggetto valido
-        if (!recordAppuntamenti)
+        if (!rispostaFetchGetElement)
             return;
-        else if (Object.keys(recordAppuntamenti).length == 0)
+        else if (Object.keys(rispostaFetchGetElement).length == 0)
             return;
         else {
-            if (recordAppuntamenti.stato == 200)
-                setAppuntamenti(recordAppuntamenti.dati);
+            if (rispostaFetchGetElement.stato == 200)
+                setAppuntamenti(rispostaFetchGetElement.dati);
             else
-                f.toastAttenzione(recordAppuntamenti.messaggio);
+                f.toastAttenzione(rispostaFetchGetElement.messaggio);
         }
-    }, [recordAppuntamenti]);
+    }, [rispostaFetchGetElement]);
 
     useEffect(() => {
-        // recupero gli appuntmenti dal server
-        eseguiFetchAppuntamenti();
+        eseguiFetchGetElement();
     }, []);
 
     return (
